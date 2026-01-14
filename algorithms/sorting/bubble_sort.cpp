@@ -13,6 +13,7 @@ int main()
     // After each pass, the largest element moves to the end
     for (int i = 0; i < arr_len - 1; i++)
     {
+        bool swapped = false;
         // Inner loop compares adjacent elements
         // (arr_len - (i + 1)) avoids checking already sorted elements
         for (int j = 0; j < arr_len - (i + 1); j++)
@@ -24,7 +25,12 @@ int main()
                 int temp = arr[j];
                 arr[j] = arr[j + 1];
                 arr[j + 1] = temp;
+                swapped = true;
             }
+        }
+        if (!swapped)
+        {
+            break;
         }
     }
     for (int i = 0; i < arr_len; i++)
