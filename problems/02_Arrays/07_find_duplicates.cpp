@@ -1,6 +1,6 @@
 #include <iostream>
+#include <vector>
 using namespace std;
-
 void display_array(int arr[], int arr_length)
 {
     for (int i = 0; i < arr_length; i++)
@@ -9,53 +9,43 @@ void display_array(int arr[], int arr_length)
     }
 }
 
-void sorting(int arr[], int arr_len)
-{
-    for (int i = 1; i < arr_len; i++)
-    {
-        int gap = i - 1;
-        int current_element = arr[i];
-        int shifting_position = i;
-
-        while (gap >= 0)
-        {
-            if (current_element < arr[gap])
-            {
-                arr[gap + 1] = arr[gap];
-                shifting_position = gap;
-                gap--;
-            }
-            else
-            {
-                break;
-            }
-        }
-        arr[shifting_position] = current_element;
-    }
-}
-
 int main()
 {
+    // Given an integer array nums of length n where all the integers of nums are in the range
+    // [1, n] and each integer appears at most twice, return an array of all the integers that
+    // appears twice.
     int arr[8] = {4, 3, 2, 7, 8, 2, 3, 1};
     int arr_length = sizeof(arr) / sizeof(int);
-    int duplicates_arr[arr_length];
-    int duplicates_index = 0;
 
-    sorting(arr, &arr_length);
+    vector<int> duplicates_arr;
 
     cout << "Original Array:\n";
     display_array(arr, arr_length);
 
-    for (int i = 1; i < arr_length; i++)
+    for (int i = 0; i < arr_length; i++)
     {
-        if (arr[i] == arr[i - 1])
+        // Step 1: Get the absolute value because the current element
+        // might have been negated in a previous iteration.
+        int val = abs(arr[i]);
+
+        // Step 2: Use (val - 1) as the index to map the range [1, n].
+        // Check if the value at this target index is already negative.
+        if (arr[val - 1] < 0)
         {
-            duplicates_arr[duplicates_index] = arr[i];
-            duplicates_index++;
+            // If it's already negative, it means we've seen 'val' before.
+            duplicates_arr.push_back(val);
+            continue;
         }
+        // Step 3: If it's positive, this is the first time seeing 'val'.
+        // Mark it by negating the value at target index.
+        arr[val - 1] *= -1;
     }
 
+    // Output the duplicates
     cout << "\n\nDuplicates Array:\n";
-    display_array(duplicates_arr, duplicates_index);
+    for (int i = 0; i < duplicates_arr.size(); i++)
+    {
+        cout << duplicates_arr[i] << "  ";
+    }
     return 0;
 }
