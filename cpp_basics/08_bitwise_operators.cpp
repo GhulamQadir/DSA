@@ -41,7 +41,12 @@ int main()
     cout << (3 ^ 7) << endl;
     cout << (6 ^ 10); // 0110 ^ 1010 = 1100 = 12
 
-    // 4) Left Shift (<<)
+    // 4) Bitwise Not
+    // flips the bit and take two's complement for negative numbers
+    int a = 9;
+    cout << "\n\n4)Bitwise Not(~): " << ~a;
+
+    // 5) Left Shift (<<)
     // Shifts bits to the LEFT and fills with 0 on the right
     // Equivalent to: number * 2^n
     // Example:
@@ -52,7 +57,7 @@ int main()
     cout << (4 << n) << "\n"; // 4 * 2^1 = 8
     cout << (10 << 2);        // 10 * 2^2 = 40
 
-    // Shifts bits to the RIGHT
+    // 6) Shifts bits to the RIGHT
     // Equivalent to: number / 2^n  (for positive integers)
     // Example:
     // 10 = 1010
