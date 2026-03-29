@@ -1,31 +1,31 @@
 #include <iostream>
 using namespace std;
 
-void sort(int arr[], int &arr_len)
-{
+// void sort(int arr[], int &arr_len)
+// {
 
-    for (int i = 1; i < arr_len; i++)
-    {
-        int gap = i - 1;
-        int current_element = arr[i];
-        int shifting_position = i;
+//     for (int i = 1; i < arr_len; i++)
+//     {
+//         int gap = i - 1;
+//         int current_element = arr[i];
+//         int shifting_position = i;
 
-        while (gap >= 0)
-        {
-            if (current_element < arr[gap])
-            {
-                arr[gap + 1] = arr[gap];
-                shifting_position = gap;
-                gap--;
-            }
-            else
-            {
-                break;
-            }
-        }
-        arr[shifting_position] = current_element;
-    }
-}
+//         while (gap >= 0)
+//         {
+//             if (current_element < arr[gap])
+//             {
+//                 arr[gap + 1] = arr[gap];
+//                 shifting_position = gap;
+//                 gap--;
+//             }
+//             else
+//             {
+//                 break;
+//             }
+//         }
+//         arr[shifting_position] = current_element;
+//     }
+// }
 
 void display(int arr[], int arr_length)
 {
@@ -39,7 +39,8 @@ void display(int arr[], int arr_length)
 // {
 //     // Given a non-empty array of integers nums, every element appears twice
 //     // except for one. Find that single one.
-//     // Trick: array hamesha odd size ma hogi qk even ma kabhi bhi single element unique or baqi sab twice nhi hoskty
+//     // Trick: array will always be in odd size because in an even sized array, there
+//     // will not be a single unique element and others are in twice
 //     int arr[] = {4, 2, 10, 15, 05, 4, 13, 10, 16, 2, 16, 15, 05};
 //     int arr_len = sizeof(arr) / sizeof(arr[0]);
 
@@ -66,6 +67,8 @@ void display(int arr[], int arr_length)
 //     cout << "\nUnique element: " << unique_element;
 // }
 
+
+// Shortcut to find unique element
 int main()
 {
     int arr[] = {4, 2, 10, 15, 05, 4, 13, 10, 16, 2, 16, 15, 05};
@@ -75,5 +78,5 @@ int main()
     {
         unique = unique ^ arr[i];
     }
-    cout<<"Unique Element: "<<unique;
+    cout << "Unique Element: " << unique;
 }

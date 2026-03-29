@@ -18,7 +18,7 @@ int main()
     // Logic only applies if we have pairs
     if (arr_length % 2 == 1)
     {
-        cout << "Length have to be in even";
+        cout << "Length should be even";
     }
     else
     {
