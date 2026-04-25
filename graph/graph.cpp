@@ -1,0 +1,362 @@
+#include <iostream>
+#include <queue.h>
+#include <stack.h>
+
+struct Vertex
+{
+    char data;
+    Vertex *next_vertex;
+    Edge *edge_list;
+    Vertex *parent;
+    bool isVisited;
+};
+
+struct Edge
+{
+    int weight;
+    Vertex *destin_vertex;
+    Edge *next_edge;
+};
+
+class Graph
+{
+private:
+    Vertex *graph;
+    Vertex *tail;
+    bool is_directed;
+
+protected:
+    bool is_graph_empty()
+    {
+        if (graph == nullptr)
+        {
+            std::cout << "Graph is empty";
+            return true;
+        }
+    }
+    Vertex *find_vertex(char val)
+    {
+        Vertex *current = graph;
+        while (current != nullptr)
+        {
+            if (current->data == val)
+            {
+                return current;
+            }
+            current = current->next_vertex;
+        }
+        return current;
+    }
+
+    Edge *create_edge(int weight, Vertex *destin_vertex)
+    {
+        Edge *new_edge = new Edge();
+        new_edge->weight = weight;
+        new_edge->destin_vertex = destin_vertex;
+        new_edge->next_edge = nullptr;
+        return new_edge;
+    }
+
+    void reset_graph()
+    {
+        Vertex *curr_vertex = graph;
+        while (curr_vertex != nullptr)
+        {
+            curr_vertex->isVisited = false;
+            curr_vertex->parent = nullptr;
+            curr_vertex = curr_vertex->next_vertex;
+        }
+    }
+
+public:
+    Graph(bool directed)
+    {
+        graph = nullptr;
+        is_directed = directed;
+    }
+
+    void add_vertex(char val)
+    {
+        if (graph == nullptr)
+        {
+            Vertex *new_vertex = new Vertex();
+            new_vertex->data = val;
+            new_vertex->next_vertex = nullptr;
+            new_vertex->isVisited = false;
+            new_vertex->parent = nullptr;
+            graph = new_vertex;
+        }
+        else
+        {
+            Vertex *current = graph;
+            Vertex *previous = nullptr;
+            while (current != nullptr)
+            {
+                if (current->data == val)
+                {
+                    std::cout << "Duplicate Vertex found";
+                    return;
+                }
+                previous = current;
+                current = current->next_vertex;
+            }
+
+            Vertex *new_vertex = new Vertex();
+            new_vertex->data = val;
+            new_vertex->next_vertex = nullptr;
+            new_vertex->isVisited = false;
+            new_vertex->parent = nullptr;
+
+            previous->next_vertex = new_vertex;
+        }
+    }
+
+    void add_edge(int weight, char source, char destination)
+    {
+        if (is_graph_empty())
+        {
+            return;
+        }
+
+        Vertex *src = find_vertex(source);
+        Vertex *destin = find_vertex(destination);
+
+        if (src == nullptr)
+        {
+            std::cout << "Source not found";
+            return;
+        }
+
+        if (destin == nullptr)
+        {
+            std::cout << "Destination not found";
+            return;
+        }
+
+        else
+        {
+            Edge *temp = src->edge_list;
+            while (temp != nullptr)
+            {
+                if (temp->destin_vertex == destin)
+                {
+                    std::cout << "Duplicate edge found";
+                    return;
+                }
+                temp = temp->next_edge;
+            }
+            Edge *src_edge = create_edge(weight, destin);
+
+            src_edge->next_edge = src->edge_list;
+            src->edge_list = src_edge;
+
+            if (!is_directed)
+            {
+                Edge *destin_edge = create_edge(weight, src);
+                destin_edge->next_edge = destin->edge_list;
+                destin->edge_list = destin_edge;
+            }
+        }
+    }
+
+    void remove_edge(char src_val, char destin_val)
+    {
+        if (is_graph_empty())
+        {
+            return;
+        }
+
+        Vertex *curr_vertex = find_vertex(src_val);
+
+        if (curr_vertex == nullptr)
+        {
+            std::cout << "Vertex not found";
+            return;
+        }
+
+        if (curr_vertex->edge_list == nullptr)
+        {
+            std::cout << "Edge List is empty";
+            return;
+        }
+
+        Edge *curr_edge = curr_vertex->edge_list;
+        if (curr_edge->destin_vertex->data == destin_val)
+        {
+            Edge *temp = curr_edge;
+            curr_vertex->edge_list = temp->next_edge;
+            delete temp;
+            return;
+        }
+
+        Edge *prev_edge = curr_edge;
+        curr_edge = curr_edge->next_edge;
+        while (curr_edge != nullptr)
+        {
+            if (curr_edge->destin_vertex->data == destin_val)
+            {
+                prev_edge->next_edge = curr_edge->next_edge;
+                delete curr_edge;
+                return;
+            }
+            prev_edge = curr_edge;
+            curr_edge = curr_edge->next_edge;
+        }
+        std::cout << "Edge Not Found";
+        return;
+    }
+
+    int out_degree(char val)
+    {
+        Vertex *current_vertex = find_vertex(val);
+        if (current_vertex == nullptr)
+        {
+            std::cout << "Vertex not found";
+            return -1;
+        }
+        Edge *curr_edge = current_vertex->edge_list;
+        int degree = 0;
+        while (curr_edge != nullptr)
+        {
+            degree++;
+            curr_edge = curr_edge->next_edge;
+        }
+        return degree;
+    }
+
+    int in_degree(char val)
+    {
+        Vertex *vertex_to_find = find_vertex(val);
+        if (vertex_to_find == nullptr)
+        {
+            std::cout << "Vertex not found";
+            return -1;
+        }
+
+        Vertex *current_vertex = graph;
+        int degree = 0;
+        while (current_vertex != nullptr)
+        {
+            Edge *current_edge = current_vertex->edge_list;
+            while (current_edge != nullptr)
+            {
+                if (current_edge->destin_vertex == vertex_to_find)
+                {
+                    degree++;
+                    break;
+                }
+                current_edge = current_edge->next_edge;
+            }
+            current_vertex = current_vertex->next_vertex;
+        }
+        return degree;
+    }
+
+    void degree(char val)
+    {
+        if (!is_directed)
+        {
+            Vertex *vertex_to_find = find_vertex(val);
+
+            if (vertex_to_find == nullptr)
+            {
+                std::cout << "Vertex Not Found";
+                return;
+            }
+            Vertex *current_vertex = vertex_to_find;
+            Edge *current_edge = current_vertex->edge_list;
+            int deg = 0;
+            while (current_edge != nullptr)
+            {
+                if (current_edge->destin_vertex == vertex_to_find)
+                {
+                    deg += 2;
+                }
+                else
+                {
+                    deg++;
+                }
+                current_edge = current_edge->next_edge;
+            }
+            std::cout << "Undirected Degree: " << deg;
+            return;
+        }
+        int in_deg = in_degree(val);
+        int out_deg = out_degree(val);
+        std::cout << "Directed: \nIn-Degree: " << in_deg << "Out-Degree: " << out_deg;
+        return;
+    }
+
+    void breadth_first_traversal()
+    {
+        Queue q;
+        Vertex *current_vertex = graph;
+        while (current_vertex != nullptr)
+        {
+            if (current_vertex->isVisited == false)
+            {
+                current_vertex->isVisited = true;
+                q.enqueue(current_vertex);
+                while (!q.is_queue_empty())
+                {
+                    Vertex *vtr = q.dequeue();
+                    std::cout << vtr->data;
+                    Edge *temp_edge = vtr->edge_list;
+                    while (temp_edge != nullptr)
+                    {
+                        if (temp_edge->destin_vertex->isVisited == false)
+                        {
+                            q.enqueue(temp_edge->destin_vertex);
+                            temp_edge->destin_vertex->isVisited = true;
+                        }
+                        temp_edge = temp_edge->next_edge;
+                    }
+                }
+            }
+            current_vertex = current_vertex->next_vertex;
+        }
+        reset_graph();
+    }
+
+    void depth_first_traversal()
+    {
+        Stack s;
+        Vertex *current_vertex = graph;
+        while (current_vertex != nullptr)
+        {
+            if (current_vertex->isVisited == false)
+            {
+                s.push(current_vertex);
+                while (!s.is_stack_empty())
+                {
+                    Vertex *vtr = s.pop();
+                    vtr->isVisited = true;
+                    std::cout << vtr->data;
+                    Edge *temp_edge = vtr->edge_list;
+                    while (temp_edge != nullptr)
+                    {
+                        if (temp_edge->destin_vertex->isVisited == false)
+                        {
+                            s.push(temp_edge->destin_vertex);
+                        }
+                        temp_edge = temp_edge->next_edge;
+                    }
+                }
+            }
+            current_vertex = current_vertex->next_vertex;
+        }
+        reset_graph();
+    }
+
+    void path(char src_val, char destin_val)
+    {
+        Vertex *current = graph;
+        while (current != nullptr)
+        {
+            if (current->data == src_val)
+            {
+            }
+            current = current->next_vertex;
+        }
+    }
+};
