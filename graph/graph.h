@@ -1,6 +1,6 @@
 #include <iostream>
-#include <queue.h>
-#include <stack.h>
+#include "queue.h"
+#include "stack.h"
 
 struct Vertex
 {
@@ -9,6 +9,7 @@ struct Vertex
     Edge *edge_list;
     Vertex *parent;
     bool isVisited;
+    bool rec_stack;
 };
 
 struct Edge
@@ -22,7 +23,6 @@ class Graph
 {
 private:
     Vertex *graph;
-    Vertex *tail;
     bool is_directed;
 
 protected:
@@ -67,6 +67,16 @@ protected:
             curr_vertex = curr_vertex->next_vertex;
         }
     }
+    void path_backtrack(Vertex *vtr)
+    {
+        if (vtr->parent == nullptr)
+        {
+            std::cout << vtr->data;
+            return;
+        }
+        path_backtrack(vtr->parent);
+        std::cout << vtr->data;
+    }
 
 public:
     Graph(bool directed)
@@ -83,6 +93,7 @@ public:
             new_vertex->data = val;
             new_vertex->next_vertex = nullptr;
             new_vertex->isVisited = false;
+            new_vertex->rec_stack = false;
             new_vertex->parent = nullptr;
             graph = new_vertex;
         }
@@ -105,6 +116,7 @@ public:
             new_vertex->data = val;
             new_vertex->next_vertex = nullptr;
             new_vertex->isVisited = false;
+            new_vertex->rec_stack = false;
             new_vertex->parent = nullptr;
 
             previous->next_vertex = new_vertex;
@@ -350,13 +362,154 @@ public:
 
     void path(char src_val, char destin_val)
     {
-        Vertex *current = graph;
-        while (current != nullptr)
+        Queue q;
+        Vertex *destin_vtr = nullptr;
+        bool path_found = false;
+
+        Vertex *current_vertex = graph;
+        while (current_vertex != nullptr)
         {
-            if (current->data == src_val)
+            if (current_vertex->data == src_val)
             {
+                if (current_vertex->data == destin_val)
+                {
+                    std::cout << src_val;
+                    return;
+                }
+                current_vertex->isVisited = true;
+                q.enqueue(current_vertex);
+                while (!q.is_queue_empty())
+                {
+                    Vertex *vtr = q.dequeue();
+                    Edge *temp_edge = vtr->edge_list;
+                    while (temp_edge != nullptr)
+                    {
+                        if (temp_edge->destin_vertex->isVisited == false)
+                        {
+                            q.enqueue(temp_edge->destin_vertex);
+                            temp_edge->destin_vertex->isVisited = true;
+                            temp_edge->destin_vertex->parent = vtr;
+                            if (temp_edge->destin_vertex->data == destin_val)
+                            {
+                                destin_vtr = temp_edge->destin_vertex;
+                                path_found = true;
+                                break;
+                            }
+                        }
+                        temp_edge = temp_edge->next_edge;
+                    }
+                    if (path_found)
+                    {
+                        path_backtrack(destin_vtr);
+                        break;
+                    }
+                }
+                if (!path_found)
+                {
+                    std::cout << "Path Not found";
+                }
+                break;
             }
-            current = current->next_vertex;
+            current_vertex = current_vertex->next_vertex;
         }
+        reset_graph();
+    }
+
+    bool dfs_cycle(Vertex *vtr)
+    {
+        vtr->isVisited = true;
+        vtr->rec_stack = true;
+
+        Edge *temp_edge = vtr->edge_list;
+        while (temp_edge != nullptr)
+        {
+            Vertex *neighbour = temp_edge->destin_vertex;
+            if (neighbour->isVisited && neighbour->rec_stack)
+            {
+                return true;
+            }
+            if (neighbour->isVisited == false)
+            {
+                bool result = dfs_cycle(temp_edge->destin_vertex);
+                if (result == true)
+                {
+                    return true;
+                }
+            }
+
+            temp_edge = temp_edge->next_edge;
+        }
+        vtr->rec_stack = false;
+        return false;
+    }
+
+    bool check_cycle_for_directed()
+    {
+        reset_graph();
+        Vertex *curr_vtr = graph;
+        while (curr_vtr != nullptr)
+        {
+            if (curr_vtr->isVisited == false)
+            {
+                bool result = dfs_cycle(curr_vtr);
+                if (result)
+                {
+                    return result;
+                }
+            }
+            curr_vtr = curr_vtr->next_vertex;
+        }
+        return false;
+    }
+
+    bool check_cycle_for_undirected()
+    {
+        Stack s;
+        Vertex *curr_vtr = graph;
+        while (curr_vtr != nullptr)
+        {
+            if (curr_vtr->isVisited == false)
+            {
+                s.push(curr_vtr);
+                curr_vtr->isVisited = true;
+
+                while (!s.is_stack_empty())
+                {
+                    Vertex *vtr = s.pop();
+                    Edge *temp_edge = vtr->edge_list;
+                    while (temp_edge != nullptr)
+                    {
+                        if (temp_edge->destin_vertex->isVisited == false)
+                        {
+                            temp_edge->destin_vertex->isVisited = true;
+                            s.push(temp_edge->destin_vertex);
+                            temp_edge->destin_vertex->parent = vtr;
+                        }
+                        else if (temp_edge->destin_vertex->isVisited == true && temp_edge->destin_vertex != vtr->parent)
+                        {
+                            return true;
+                        }
+                        temp_edge = temp_edge->next_edge;
+                    }
+                }
+            }
+            curr_vtr = curr_vtr->next_vertex;
+        }
+        reset_graph();
+        return false;
+    }
+
+    bool hasCycle()
+    {
+        bool result;
+        if (!is_directed)
+        {
+            result = check_cycle_for_directed();
+        }
+        else
+        {
+            result = check_cycle_for_directed();
+        }
+        return result;
     }
 };

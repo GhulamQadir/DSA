@@ -1,5 +1,5 @@
 #include <iostream>
-#include <graph.cpp>
+#include "graph.h"
 using namespace std;
 
 int main()
@@ -33,5 +33,4 @@ int main()
 
     std::cout << "Degrees for Vertex 'A' after removing edge A->B:" << std::endl;
     myGraph.degree('A');
-
 }
