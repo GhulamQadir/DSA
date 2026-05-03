@@ -1,16 +1,55 @@
 #include <iostream>
 using namespace std;
 
-// Node structure for the Linked List based Stack
+// Node for the Character Stack (Used for Operators during conversion)
 struct StackNode
 {
     char value;
     StackNode *next;
 };
 
-StackNode *top = nullptr;
+// Node for the Float Stack (Used for operands during evaluation)
+struct EvaluationStack
+{
+    float value;
+    EvaluationStack *next;
+};
 
-// Function to define operator Precedence
+// Global pointers for the top of the stacks
+StackNode *top = nullptr;
+EvaluationStack *eval_top = nullptr;
+
+// Pushes a numeric value onto the evaluation stack
+void eval_push(float value)
+{
+    EvaluationStack *newNode = new EvaluationStack();
+    newNode->value = value;
+    if (eval_top == nullptr)
+    {
+        newNode->next = nullptr;
+        eval_top = newNode;
+        return;
+    }
+    newNode->next = eval_top;
+    eval_top = newNode;
+}
+
+// Pops and returns a numeric value from the evaluation stack
+float eval_pop()
+{
+    if (eval_top == nullptr)
+    {
+        cout << "Stack is empty";
+        return 0;
+    }
+    EvaluationStack *temp = eval_top;
+    float value = temp->value;
+    eval_top = eval_top->next;
+    delete temp;
+    return value;
+}
+
+// Defines the priority of operators. Higher return value = Higher priority.
 int precedence(char opr)
 {
     switch (opr)
@@ -36,7 +75,7 @@ int precedence(char opr)
     }
 }
 
-// Push operation to add an operator to the stack
+// Pushes a character (operator/bracket) onto the conversion stack
 void push(char value)
 {
     StackNode *newNode = new StackNode();
@@ -51,7 +90,7 @@ void push(char value)
     top = newNode;
 }
 
-// Pop operation to remove and return the top operator
+// Pops and returns a character from the conversion stack
 char pop()
 {
     if (top == nullptr)
@@ -66,7 +105,7 @@ char pop()
     return opr;
 }
 
-// Main logic to convert Infix expression to Postfix
+// Main logic to convert Infix (A+B) to Postfix (AB+)
 string generate_postfix(string infix)
 {
     string postfix = "";
@@ -138,12 +177,71 @@ void display(string postfix)
     }
 }
 
+// Logic to calculate the final result from a Postfix string
+float evaluate_postfix(string postfix_equation)
+{
+    for (int i = 0; i < postfix_equation.length(); i++)
+    {
+        // Rule 1: If character is a digit, convert ASCII to int and push to eval_stack
+        if ((postfix_equation[i] >= 48 && postfix_equation[i] <= 57))
+        {
+            eval_push(postfix_equation[i] - 48);
+        }
+        else
+        {
+            // Rule 2: If operator, pop two values and perform calculation
+            // Note: First pop is val1 (right side), second pop is val2 (left side)
+            float val1 = eval_pop();
+            float val2 = eval_pop();
+
+            float answer;
+            switch (postfix_equation[i])
+            {
+            case '+':
+                answer = val2 + val1;
+                break;
+
+            case '-':
+                answer = val2 - val1;
+                break;
+
+            case '*':
+                answer = val2 * val1;
+                break;
+
+            case '/':
+                answer = val2 / val1;
+                break;
+            default:
+                break;
+            }
+            // Push the intermediate result back to stack
+            eval_push(answer);
+        }
+    }
+    // Final result remains at the top of the stack
+    float final_answer = eval_pop();
+
+    // Integrity Check: Stack should be empty now
+    if (eval_top != nullptr)
+    {
+        cout << "Incorrect Equation";
+        return 0;
+    }
+    return final_answer;
+}
+
 int main()
+
 {
     string infix;
     cout << "Enter infix equation: ";
     cin >> infix;
 
     string postfix = generate_postfix(infix);
+    cout << "Postfix Notation: ";
     display(postfix);
+
+    float postfix_answer = evaluate_postfix(postfix);
+    cout << "\nFinal Answer: " << postfix_answer;
 }
