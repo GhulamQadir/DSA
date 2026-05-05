@@ -57,12 +57,24 @@ protected:
         return new_edge;
     }
 
+    Vertex *create_vertex(char val)
+    {
+        Vertex *new_vertex = new Vertex();
+        new_vertex->data = val;
+        new_vertex->next_vertex = nullptr;
+        new_vertex->isVisited = false;
+        new_vertex->rec_stack = false;
+        new_vertex->parent = nullptr;
+        return new_vertex;
+    }
+
     void reset_graph()
     {
         Vertex *curr_vertex = graph;
         while (curr_vertex != nullptr)
         {
             curr_vertex->isVisited = false;
+            curr_vertex->rec_stack = false;
             curr_vertex->parent = nullptr;
             curr_vertex = curr_vertex->next_vertex;
         }
@@ -78,6 +90,118 @@ protected:
         std::cout << vtr->data;
     }
 
+    bool dfs_for_cycle_detection(Vertex *vtr)
+    {
+        vtr->isVisited = true;
+        vtr->rec_stack = true;
+
+        Edge *temp_edge = vtr->edge_list;
+        while (temp_edge != nullptr)
+        {
+            Vertex *neighbour = temp_edge->destin_vertex;
+            if (neighbour->isVisited && neighbour->rec_stack)
+            {
+                return true;
+            }
+            if (neighbour->isVisited == false)
+            {
+                bool result = dfs_for_cycle_detection(temp_edge->destin_vertex);
+                if (result == true)
+                {
+                    return true;
+                }
+            }
+
+            temp_edge = temp_edge->next_edge;
+        }
+        vtr->rec_stack = false;
+        return false;
+    }
+    bool delete_from_edge_list(Vertex *curr_vertex, char val_to_delete)
+    {
+        if (curr_vertex->edge_list == nullptr)
+        {
+            return false;
+        }
+
+        Edge *curr_edge = curr_vertex->edge_list;
+        if (curr_edge->destin_vertex->data == val_to_delete)
+        {
+            Edge *temp = curr_edge;
+            curr_vertex->edge_list = temp->next_edge;
+            delete temp;
+            return true;
+        }
+
+        Edge *prev_edge = curr_edge;
+        curr_edge = curr_edge->next_edge;
+        while (curr_edge != nullptr)
+        {
+            if (curr_edge->destin_vertex->data == val_to_delete)
+            {
+                prev_edge->next_edge = curr_edge->next_edge;
+                delete curr_edge;
+                return true;
+            }
+            prev_edge = curr_edge;
+            curr_edge = curr_edge->next_edge;
+        }
+        return false;
+    }
+
+    void dfs_helper(Vertex *vtr)
+    {
+        vtr->isVisited = true;
+        cout << vtr->data << "   ";
+
+        Edge *temp_edge = vtr->edge_list;
+        while (temp_edge != nullptr)
+        {
+            if (temp_edge->destin_vertex->isVisited == false)
+            {
+                dfs_helper(temp_edge->destin_vertex);
+            }
+            temp_edge = temp_edge->next_edge;
+        }
+    }
+
+    bool check_cycle_for_undirected()
+    {
+        Stack s;
+        Vertex *curr_vtr = graph;
+        while (curr_vtr != nullptr)
+        {
+            if (curr_vtr->isVisited == false)
+            {
+                s.push(curr_vtr);
+                curr_vtr->isVisited = true;
+
+                while (!s.is_stack_empty())
+                {
+                    Vertex *vtr = s.pop();
+                    Edge *temp_edge = vtr->edge_list;
+                    while (temp_edge != nullptr)
+                    {
+                        if (temp_edge->destin_vertex->isVisited == false)
+                        {
+                            temp_edge->destin_vertex->isVisited = true;
+                            s.push(temp_edge->destin_vertex);
+                            temp_edge->destin_vertex->parent = vtr;
+                        }
+                        else if (temp_edge->destin_vertex->isVisited == true && temp_edge->destin_vertex != vtr->parent)
+                        {
+                            return true;
+                        }
+                        temp_edge = temp_edge->next_edge;
+                    }
+                }
+            }
+            curr_vtr = curr_vtr->next_vertex;
+        }
+        reset_graph();
+        return false;
+    }
+
 public:
     Graph(bool directed)
     {
@@ -89,12 +213,7 @@ public:
     {
         if (graph == nullptr)
         {
-            Vertex *new_vertex = new Vertex();
-            new_vertex->data = val;
-            new_vertex->next_vertex = nullptr;
-            new_vertex->isVisited = false;
-            new_vertex->rec_stack = false;
-            new_vertex->parent = nullptr;
+            Vertex *new_vertex = create_vertex(val);
             graph = new_vertex;
         }
         else
@@ -112,13 +231,7 @@ public:
                 current = current->next_vertex;
             }
 
-            Vertex *new_vertex = new Vertex();
-            new_vertex->data = val;
-            new_vertex->next_vertex = nullptr;
-            new_vertex->isVisited = false;
-            new_vertex->rec_stack = false;
-            new_vertex->parent = nullptr;
-
+            Vertex *new_vertex = create_vertex(val);
             previous->next_vertex = new_vertex;
         }
     }
@@ -178,44 +291,27 @@ public:
             return;
         }
 
-        Vertex *curr_vertex = find_vertex(src_val);
-
-        if (curr_vertex == nullptr)
+        Vertex *src_vtr = find_vertex(src_val);
+        if (src_vtr == nullptr)
         {
-            std::cout << "Vertex not found";
+            std::cout << "Source not found";
             return;
         }
 
-        if (curr_vertex->edge_list == nullptr)
+        bool result = delete_from_edge_list(src_vtr, destin_val);
+        if (!result)
         {
-            std::cout << "Edge List is empty";
+            cout << "Edge not deleted!";
             return;
         }
 
-        Edge *curr_edge = curr_vertex->edge_list;
-        if (curr_edge->destin_vertex->data == destin_val)
+        if (!is_directed)
         {
-            Edge *temp = curr_edge;
-            curr_vertex->edge_list = temp->next_edge;
-            delete temp;
-            return;
+            Vertex *destin_vtr = find_vertex(destin_val);
+            delete_from_edge_list(destin_vtr, src_val);
         }
 
-        Edge *prev_edge = curr_edge;
-        curr_edge = curr_edge->next_edge;
-        while (curr_edge != nullptr)
-        {
-            if (curr_edge->destin_vertex->data == destin_val)
-            {
-                prev_edge->next_edge = curr_edge->next_edge;
-                delete curr_edge;
-                return;
-            }
-            prev_edge = curr_edge;
-            curr_edge = curr_edge->next_edge;
-        }
-        std::cout << "Edge Not Found";
-        return;
+        cout << "Edge Deleted Successfully";
     }
 
     int out_degree(char val)
@@ -301,6 +397,7 @@ public:
 
     void breadth_first_traversal()
     {
+        reset_graph();
         Queue q;
         Vertex *current_vertex = graph;
         while (current_vertex != nullptr)
@@ -327,11 +424,11 @@ public:
             }
             current_vertex = current_vertex->next_vertex;
         }
-        reset_graph();
     }
 
     void depth_first_traversal()
     {
+        reset_graph();
         Stack s;
         Vertex *current_vertex = graph;
         while (current_vertex != nullptr)
@@ -357,91 +454,77 @@ public:
             }
             current_vertex = current_vertex->next_vertex;
         }
+    }
+
+    void dfs_using_recursion()
+    {
         reset_graph();
+        Vertex *current_vertex = graph;
+        while (current_vertex != nullptr)
+        {
+            if (current_vertex->isVisited == false)
+            {
+                dfs_helper(current_vertex);
+            }
+            current_vertex = current_vertex->next_vertex;
+        };
     }
 
     void path(char src_val, char destin_val)
     {
+        reset_graph();
         Queue q;
-        Vertex *destin_vtr = nullptr;
         bool path_found = false;
 
-        Vertex *current_vertex = graph;
-        while (current_vertex != nullptr)
+        Vertex *src_vtr = find_vertex(src_val);
+        Vertex *destin_vtr = find_vertex(destin_val);
+        if (src_vtr == nullptr)
         {
-            if (current_vertex->data == src_val)
+            cout << "Source Not Found!";
+            return;
+        }
+        if (destin_vtr == nullptr)
+        {
+            cout << "Destination not found";
+            return;
+        }
+        if (src_val == destin_val)
+        {
+            std::cout << src_val;
+            return;
+        }
+        src_vtr->isVisited = true;
+        q.enqueue(src_vtr);
+        while (!q.is_queue_empty())
+        {
+            Vertex *vtr = q.dequeue();
+            Edge *temp_edge = vtr->edge_list;
+            while (temp_edge != nullptr)
             {
-                if (current_vertex->data == destin_val)
+                if (temp_edge->destin_vertex->isVisited == false)
                 {
-                    std::cout << src_val;
-                    return;
-                }
-                current_vertex->isVisited = true;
-                q.enqueue(current_vertex);
-                while (!q.is_queue_empty())
-                {
-                    Vertex *vtr = q.dequeue();
-                    Edge *temp_edge = vtr->edge_list;
-                    while (temp_edge != nullptr)
+                    q.enqueue(temp_edge->destin_vertex);
+                    temp_edge->destin_vertex->isVisited = true;
+                    temp_edge->destin_vertex->parent = vtr;
+                    if (temp_edge->destin_vertex->data == destin_val)
                     {
-                        if (temp_edge->destin_vertex->isVisited == false)
-                        {
-                            q.enqueue(temp_edge->destin_vertex);
-                            temp_edge->destin_vertex->isVisited = true;
-                            temp_edge->destin_vertex->parent = vtr;
-                            if (temp_edge->destin_vertex->data == destin_val)
-                            {
-                                destin_vtr = temp_edge->destin_vertex;
-                                path_found = true;
-                                break;
-                            }
-                        }
-                        temp_edge = temp_edge->next_edge;
-                    }
-                    if (path_found)
-                    {
-                        path_backtrack(destin_vtr);
+                        path_found = true;
                         break;
                     }
                 }
-                if (!path_found)
-                {
-                    std::cout << "Path Not found";
-                }
+                temp_edge = temp_edge->next_edge;
+            }
+            if (path_found)
+            {
+                path_backtrack(destin_vtr);
                 break;
             }
-            current_vertex = current_vertex->next_vertex;
         }
-        reset_graph();
-    }
-
-    bool dfs_cycle(Vertex *vtr)
-    {
-        vtr->isVisited = true;
-        vtr->rec_stack = true;
-
-        Edge *temp_edge = vtr->edge_list;
-        while (temp_edge != nullptr)
+        if (!path_found)
         {
-            Vertex *neighbour = temp_edge->destin_vertex;
-            if (neighbour->isVisited && neighbour->rec_stack)
-            {
-                return true;
-            }
-            if (neighbour->isVisited == false)
-            {
-                bool result = dfs_cycle(temp_edge->destin_vertex);
-                if (result == true)
-                {
-                    return true;
-                }
-            }
-
-            temp_edge = temp_edge->next_edge;
+            std::cout << "Path Not found";
         }
-        vtr->rec_stack = false;
-        return false;
-    }
+}
 
     bool check_cycle_for_directed()
     {
@@ -451,7 +534,7 @@ public:
         {
             if (curr_vtr->isVisited == false)
             {
-                bool result = dfs_cycle(curr_vtr);
+                bool result = dfs_for_cycle_detection(curr_vtr);
                 if (result)
                 {
                     return result;
@@ -459,43 +542,6 @@ public:
             }
             curr_vtr = curr_vtr->next_vertex;
         }
-        return false;
-    }
-
-    bool check_cycle_for_undirected()
-    {
-        Stack s;
-        Vertex *curr_vtr = graph;
-        while (curr_vtr != nullptr)
-        {
-            if (curr_vtr->isVisited == false)
-            {
-                s.push(curr_vtr);
-                curr_vtr->isVisited = true;
-
-                while (!s.is_stack_empty())
-                {
-                    Vertex *vtr = s.pop();
-                    Edge *temp_edge = vtr->edge_list;
-                    while (temp_edge != nullptr)
-                    {
-                        if (temp_edge->destin_vertex->isVisited == false)
-                        {
-                            temp_edge->destin_vertex->isVisited = true;
-                            s.push(temp_edge->destin_vertex);
-                            temp_edge->destin_vertex->parent = vtr;
-                        }
-                        else if (temp_edge->destin_vertex->isVisited == true && temp_edge->destin_vertex != vtr->parent)
-                        {
-                            return true;
-                        }
-                        temp_edge = temp_edge->next_edge;
-                    }
-                }
-            }
-            curr_vtr = curr_vtr->next_vertex;
-        }
-        reset_graph();
         return false;
     }
 
