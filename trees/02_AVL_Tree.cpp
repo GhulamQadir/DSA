@@ -53,7 +53,7 @@ AVLTree *insert(AVLTree *current, int value)
         AVLTree *temp = new AVLTree();
         temp->value = value;
         temp->left = temp->right = nullptr;
-        temp->height = 0;
+        temp->height =   0;
         return temp;
     }
     if (value < current->value)
@@ -65,6 +65,7 @@ AVLTree *insert(AVLTree *current, int value)
         if (abs(difference) == 2)
         {
             if (value < current->left->value) // Left-Left Case
+      
             {
                 current = rotateRight(current);
             }
