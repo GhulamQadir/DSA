@@ -45,13 +45,13 @@ void insert(int element)
 
 // Restores the heap property by moving an element DOWN the tree.
 // Used after the root is replaced by the last element during a pop.
-void down_heapify(int index)
+void down_heapify(int index, int new_size)
 {
     int child1 = 2 * index + 1; // Left child index
     int child2 = 2 * index + 2; // Right child index
 
     // Base case: If the node has no left child, it's a leaf node; stop.
-    if (child1 >= heap_arr.size())
+    if (child1 >= new_size)
     {
         return;
     }
@@ -59,7 +59,7 @@ void down_heapify(int index)
     int greatest = -1;
 
     // Case 1: Only left child exists
-    if (child2 >= heap_arr.size())
+    if (child2 >= new_size)
     {
         greatest = child1;
     }
@@ -79,40 +79,25 @@ void down_heapify(int index)
         int temp = heap_arr[index];
         heap_arr[index] = heap_arr[greatest];
         heap_arr[greatest] = temp;
-        down_heapify(greatest);
+        down_heapify(greatest, new_size);
     }
     return;
 }
 
-// Removes and returns the maximum element (the root) from the heap.
-int pop()
+void heap_sort()
 {
-    if (heap_arr.size() == 0)
+    // loop till second last element because the last element because the 
+    // last element will automatically reach its correct position at the end
+    for (int i = 0; i < heap_arr.size() - 1; i++)
     {
-        cout << "Heap is Empty";
-        return -1;
+        int updated_heap_size = heap_arr.size() - i - 1;
+        int temp = heap_arr[updated_heap_size];
+        heap_arr[updated_heap_size] = heap_arr[0];
+        heap_arr[0] = temp;
+        down_heapify(0, updated_heap_size);
     }
-
-    int element_to_pop = heap_arr[0];
-
-    // Special case: Only one element in heap
-    if (heap_arr.size() == 1)
-    {
-        heap_arr.pop_back();
-        return element_to_pop;
-    }
-
-    // Step 1: Move the last element in the array to the root position
-    heap_arr[0] = heap_arr[heap_arr.size() - 1];
-
-    // Step 2: Remove the last element and "trickle down" the new root to restore order
-    heap_arr.pop_back();
-    down_heapify(0);
-
-    return element_to_pop;
 }
 
-// Simple utility to print the array representation of the heap.
 void display()
 {
     cout << endl;
@@ -120,34 +105,21 @@ void display()
     {
         cout << heap_arr[i] << "   ";
     }
+    cout << "\n\n";
 }
 
 int main()
 {
-    cout << "Max-Heap Operations\n\n";
-    while (true)
+    const int arr_size = 9;
+    int arr[arr_size] = {43, 90, 42, 65, 87, 27, 80, 76, 49};
+    for (int i = 0; i < arr_size; i++)
     {
-        int num;
-        cout << "\n\nWhich operation do you want to perform:\n1. Push \n2. Pop\n3. Display\n4. Exit:\n";
-        cin >> num;
-        if (num == 1)
-        {
-            cout << "Enter value to add: ";
-            int n;
-            cin >> n;
-            insert(n);
-        }
-        else if (num == 2)
-        {
-            cout << "Popped value: " << pop();
-        }
-        else if (num == 3)
-        {
-            display();
-        }
-        else
-        {
-            break;
-        }
+        insert(arr[i]);
     }
+
+    display();
+
+    heap_sort();
+
+    display();
 }

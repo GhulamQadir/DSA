@@ -348,7 +348,7 @@ public:
             Edge *current_edge = current_vertex->edge_list;
             while (current_edge != nullptr)
             {
-                if (current_edge->destin_vertex == vertex_to_find)
+                if (current_edge->destin_vertex != nullptr && current_edge->destin_vertex == vertex_to_find)
                 {
                     degree++;
                     break;
@@ -524,7 +524,7 @@ public:
         {
             std::cout << "Path Not found";
         }
-}
+    }
 
     bool check_cycle_for_directed()
     {
@@ -550,12 +550,9 @@ public:
         bool result;
         if (!is_directed)
         {
-            result = check_cycle_for_directed();
+            cout << "Graph is undirected";
+            return false;
         }
-        else
-        {
-            result = check_cycle_for_directed();
-        }
-        return result;
+        return check_cycle_for_directed();
     }
 };

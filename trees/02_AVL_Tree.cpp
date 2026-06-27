@@ -53,7 +53,7 @@ AVLTree *insert(AVLTree *current, int value)
         AVLTree *temp = new AVLTree();
         temp->value = value;
         temp->left = temp->right = nullptr;
-        temp->height =   0;
+        temp->height = 0;
         return temp;
     }
     if (value < current->value)
@@ -65,7 +65,6 @@ AVLTree *insert(AVLTree *current, int value)
         if (abs(difference) == 2)
         {
             if (value < current->left->value) // Left-Left Case
-      
             {
                 current = rotateRight(current);
             }
@@ -147,12 +146,11 @@ AVLTree *delete_val(AVLTree *current, int val_to_delete)
         {
             // Find Inorder Successor (Smallest in the right subtree)
             AVLTree *temp = current->right;
-            while (temp->left != NULL)
+            while (temp->left != nullptr)
             {
                 temp = temp->left;
             }
             current->value = temp->value;
-
             current->right = delete_val(current->right, temp->value);
         }
     }
@@ -172,7 +170,7 @@ AVLTree *delete_val(AVLTree *current, int val_to_delete)
         // left-right case
         else
         {
-            current->left = rotateLeft(current);
+            current->left = rotateLeft(current->left);
             return rotateRight(current);
         }
     }
@@ -187,7 +185,7 @@ AVLTree *delete_val(AVLTree *current, int val_to_delete)
         // right-left Case
         else
         {
-            current->right = rotateRight(current);
+            current->right = rotateRight(current->right);
             return rotateLeft(current);
         }
     }
